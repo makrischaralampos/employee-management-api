@@ -59,14 +59,11 @@ public class EmployeeController {
 
     // Delete: Remove an employee
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteEmployee(@PathVariable Long id) {
-        Optional<Employee> employeeOptional = employeeRepository.findById(id);
+    public ResponseEntity<HttpStatus> deleteEmployee(@PathVariable Long id) {
+        Employee employee = employeeRepository.findById(id)
+                .orElseThrow(() -> new EmployeeNotFoundException("Employee with id " + id + " not found"));
 
-        if (employeeOptional.isPresent()) {
-            employeeRepository.delete(employeeOptional.get());
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT); // 204 No Content indicates successful deletion
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        employeeRepository.delete(employee);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
