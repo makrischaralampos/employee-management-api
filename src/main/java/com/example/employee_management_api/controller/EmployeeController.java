@@ -61,5 +61,16 @@ public class EmployeeController {
         }
     }
 
-    // Additional CRUD operations (Delete) will go here
+    // Delete: Remove an employee
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteEmployee(@PathVariable Long id) {
+        Optional<Employee> employeeOptional = employeeRepository.findById(id);
+
+        if (employeeOptional.isPresent()) {
+            employeeRepository.delete(employeeOptional.get());
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT); // 204 No Content indicates successful deletion
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
 }
