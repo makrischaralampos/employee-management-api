@@ -1,5 +1,6 @@
 package com.example.employee_management_api.controller;
 
+import com.example.employee_management_api.exception.EmployeeNotFoundException;
 import com.example.employee_management_api.model.Employee;
 import com.example.employee_management_api.repository.EmployeeRepository;
 import jakarta.validation.Valid;
@@ -35,21 +36,17 @@ public class EmployeeController {
     // Read: Retrieve employee by ID
     @GetMapping("/{id}")
     public ResponseEntity<Employee> getEmployeeById(@PathVariable Long id) {
-        Optional<Employee> employee = employeeRepository.findById(id);
-        if (employee.isPresent()) {
-            return new ResponseEntity<>(employee.get(), HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        Employee employee = employeeRepository.findById(id)
+                .orElseThrow(() -> new EmployeeNotFoundException("Employee with id " + id + " not found"));
+        return new ResponseEntity<>(employee, HttpStatus.OK);
     }
 
     // Update: Modify employee details
     @PutMapping("/{id}")
     public ResponseEntity<Employee> updateEmployee(@PathVariable Long id, @Valid @RequestBody Employee employeeDetails) {
-        Optional<Employee> employeeOptional = employeeRepository.findById(id);
+        Employee employee = employeeRepository.findById(id)
+                .orElseThrow(() -> new EmployeeNotFoundException("Employee with id " + id + " not found"));
 
-        if (employeeOptional.isPresent()) {
-            Employee employee = employeeOptional.get();
             employee.setFirstName(employeeDetails.getFirstName());
             employee.setLastName(employeeDetails.getLastName());
             employee.setEmail(employeeDetails.getEmail());
@@ -57,9 +54,7 @@ public class EmployeeController {
 
             Employee updatedEmployee = employeeRepository.save(employee);
             return new ResponseEntity<>(updatedEmployee, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+
     }
 
     // Delete: Remove an employee
