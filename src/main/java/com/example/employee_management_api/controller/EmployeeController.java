@@ -42,5 +42,24 @@ public class EmployeeController {
         }
     }
 
-    // Additional CRUD operations (Update, Delete) will go here
+    // Update: Modify employee details
+    @PutMapping("/{id}")
+    public ResponseEntity<Employee> updateEmployee(@PathVariable Long id, @RequestBody Employee employeeDetails) {
+        Optional<Employee> employeeOptional = employeeRepository.findById(id);
+
+        if (employeeOptional.isPresent()) {
+            Employee employee = employeeOptional.get();
+            employee.setFirstName(employeeDetails.getFirstName());
+            employee.setLastName(employeeDetails.getLastName());
+            employee.setEmail(employeeDetails.getEmail());
+            employee.setDepartment(employeeDetails.getDepartment());
+
+            Employee updatedEmployee = employeeRepository.save(employee);
+            return new ResponseEntity<>(updatedEmployee, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    // Additional CRUD operations (Delete) will go here
 }
