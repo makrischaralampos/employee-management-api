@@ -10,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/employees") // Base URL for employee-related operations
@@ -28,8 +27,22 @@ public class EmployeeController {
 
     // Read: Retrieve all employees
     @GetMapping
-    public ResponseEntity<List<Employee>> getAllEmployees() {
-        List<Employee> employees = employeeRepository.findAll();
+    public ResponseEntity<List<Employee>> getAllEmployees(
+            @RequestParam(required = false) String department,
+            @RequestParam(required = false) String email) {
+
+        List<Employee> employees;
+
+        if (department != null && email != null) {
+            employees = employeeRepository.findByDepartmentAndEmail(department, email);
+        } else if (department != null) {
+            employees = employeeRepository.findByDepartment(department);
+        } else if (email != null) {
+            employees = employeeRepository.findByEmail(email);
+        } else {
+            employees = employeeRepository.findAll();
+        }
+
         return new ResponseEntity<>(employees, HttpStatus.OK);
     }
 
