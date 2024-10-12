@@ -1,8 +1,7 @@
 package com.example.employee_management_api.controller;
 
-import com.example.employee_management_api.exception.EmployeeNotFoundException;
 import com.example.employee_management_api.model.Employee;
-import com.example.employee_management_api.repository.EmployeeRepository;
+import com.example.employee_management_api.service.EmployeeService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,14 +14,18 @@ import java.util.List;
 @RequestMapping("/api/employees") // Base URL for employee-related operations
 public class EmployeeController {
 
+    private final EmployeeService employeeService;
+
     @Autowired
-    private EmployeeRepository employeeRepository;
+    public EmployeeController(EmployeeService employeeService) {
+        this.employeeService = employeeService;
+    }
 
     // Create: Add a new employee
     @PostMapping
     public ResponseEntity<Employee> createEmployee(@Valid @RequestBody Employee employee) {
-        Employee savedEmployee = employeeRepository.save(employee);
-        return new ResponseEntity<>(savedEmployee, HttpStatus.CREATED);
+        Employee newEmployee = employeeService.createEmployee(employee);
+        return new ResponseEntity<>(newEmployee, HttpStatus.CREATED);
     }
 
     // Read: Retrieve all employees
@@ -31,52 +34,29 @@ public class EmployeeController {
             @RequestParam(required = false) String department,
             @RequestParam(required = false) String email) {
 
-        List<Employee> employees;
-
-        if (department != null && email != null) {
-            employees = employeeRepository.findByDepartmentAndEmail(department, email);
-        } else if (department != null) {
-            employees = employeeRepository.findByDepartment(department);
-        } else if (email != null) {
-            employees = employeeRepository.findByEmail(email);
-        } else {
-            employees = employeeRepository.findAll();
-        }
-
+        List<Employee> employees = employeeService.getAllEmployees(department, email);
         return new ResponseEntity<>(employees, HttpStatus.OK);
     }
 
     // Read: Retrieve employee by ID
     @GetMapping("/{id}")
     public ResponseEntity<Employee> getEmployeeById(@PathVariable Long id) {
-        Employee employee = employeeRepository.findById(id)
-                .orElseThrow(() -> new EmployeeNotFoundException("Employee with id " + id + " not found"));
+        Employee employee = employeeService.getEmployeeById(id);
         return new ResponseEntity<>(employee, HttpStatus.OK);
     }
 
     // Update: Modify employee details
     @PutMapping("/{id}")
-    public ResponseEntity<Employee> updateEmployee(@PathVariable Long id, @Valid @RequestBody Employee employeeDetails) {
-        Employee employee = employeeRepository.findById(id)
-                .orElseThrow(() -> new EmployeeNotFoundException("Employee with id " + id + " not found"));
-
-            employee.setFirstName(employeeDetails.getFirstName());
-            employee.setLastName(employeeDetails.getLastName());
-            employee.setEmail(employeeDetails.getEmail());
-            employee.setDepartment(employeeDetails.getDepartment());
-
-            Employee updatedEmployee = employeeRepository.save(employee);
+    public ResponseEntity<Employee> updateEmployee(@PathVariable Long id, @Valid @RequestBody Employee employee) {
+        Employee updatedEmployee = employeeService.updateEmployee(id, employee);
             return new ResponseEntity<>(updatedEmployee, HttpStatus.OK);
 
     }
 
     // Delete: Remove an employee
     @DeleteMapping("/{id}")
-    public ResponseEntity<HttpStatus> deleteEmployee(@PathVariable Long id) {
-        Employee employee = employeeRepository.findById(id)
-                .orElseThrow(() -> new EmployeeNotFoundException("Employee with id " + id + " not found"));
-
-        employeeRepository.delete(employee);
+    public ResponseEntity<Void> deleteEmployee(@PathVariable Long id) {
+        employeeService.deleteEmployee(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
